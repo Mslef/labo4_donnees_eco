@@ -1,0 +1,29 @@
+---
+title: "Laboratoire 4"
+output: "html_document"
+---
+
+## Question 1
+
+
+## Question 2
+
+Nous avons procédé à un échantillonnage aléatoire des parkings de l'Université le mercredi 25 septembre de 10h à 11h.
+
+```{r}
+set.seed(123)
+sample(seq(1, 25, 1), size=8)
+```
+
+### Données
+
+```{r}
+sample <- data.frame(
+  id = c(15,14,5,11,18,9,25,20),
+  essence = c(106,108,115,182,120,36,64,93),
+  verte = c(7,10,15,15,12,5,0,15)
+)
+
+test <- matrix(data = sample, ncol=3, nrow=8)
+
+```
