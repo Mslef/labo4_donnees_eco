@@ -9,7 +9,6 @@ output: "html_document"
 ## Question 2
 
 Nous avons procédé à un échantillonnage aléatoire des parkings de l'Université le mercredi 25 septembre de 10h à 11h.
-Test
 
 ```{r}
 set.seed(123)
