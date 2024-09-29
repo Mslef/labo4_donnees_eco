@@ -5,6 +5,31 @@ output: "html_document"
 
 ## Question 1
 
+Tout d'abord le fichier Hauteur.txt est importé. Pour s'assurer de la réplicabilité du code, le "working directory" est fixé.
+
+```{r}
+setwd("~/Documents/donnees_eco/Labo4")
+
+hauteurs <- read.table("Hauteur.txt", header =TRUE)
+
+# Les données sont ensuite analysés pour déterminer les tests appropriés
+str(hauteurs)
+head(hauteurs)
+
+# Nous pouvons visualiser la variance des frères et soeurs des échantillons avec un boxplot
+boxplot(hauteurs[c("Sister", "Brother")])
+```
+Le dataframe hauteurs contient des familles avec un compte de frères et de soeurs. Chaque famille étant indépendantes, on se retrouve devant des échantillons non appariés.
+
+On observe que la médiane des frères et soeurs est différente, et il semble y avoir plus de variance pour les soeurs.
+
+On procède donc à un test t pour échantillons non appariés :
+
+```{r}
+t.test(hauteurs[ "Sister" ], hauteurs["Brother"])
+
+# On teste ensuite les résidus, pour s'assurer de l'applicabilité du test
+```
 
 ## Question 2
 
@@ -18,12 +43,13 @@ sample(seq(1, 25, 1), size=8)
 ### Données
 
 ```{r}
-sample <- data.frame(
-  id = c(15,14,5,11,18,9,25,20),
-  essence = c(106,108,115,182,120,36,64,93),
-  verte = c(7,10,15,15,12,5,0,15)
-)
 
-test <- matrix(data = sample, ncol=3, nrow=8)
+# Matrice avec noms de colonnes
+id <- c(15, 14, 5, 11, 18, 9, 25, 20)
+essence <- c(106, 108, 115, 182, 120, 36, 64, 93)
+verte <- c(7, 10, 15, 15, 12, 5, 0, 15)
+sample_mtx <- matrix(c(id, essence, verte), nrow = 8, byrow = FALSE)
+
+colnames(sample_mtx) <- c("parking_id", "gas_cars", "green_cars")
 
 ```
