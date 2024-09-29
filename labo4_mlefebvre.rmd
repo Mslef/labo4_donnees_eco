@@ -19,26 +19,33 @@ head(hauteurs)
 # Nous pouvons visualiser la variance des frères et soeurs des échantillons avec un boxplot
 boxplot(hauteurs[c("Sister", "Brother")])
 ```
-Le dataframe hauteurs contient des familles avec un compte de frères et de soeurs. Chaque famille étant indépendantes, on se retrouve devant des échantillons non appariés.
+Le dataframe hauteurs contient des familles avec un compte de frères et de soeurs. Chaque famille étant indépendante l'une de l'autre, nous sommes en présence d'échantillons non appariés.
 
 On observe que la médiane des frères et soeurs est différente, et il semble y avoir plus de variance pour les soeurs.
 
 On procède donc à un test t pour échantillons non appariés :
 
 ```{r}
-t.test(hauteurs[ "Sister" ], hauteurs["Brother"])
+sisters <- hauteurs[ "Sister" ]
+brothers <- hauteurs["Brother"]
+
+t.test(sisters, brothers)
 
 # On teste ensuite les résidus, pour s'assurer de l'applicabilité du test
+sisters_res <- sisters - mean(sisters[,1])
+brothers_res <- brothers - mean(brothers[,1])
+
 ```
 
 ## Question 2
 
-Nous avons procédé à un échantillonnage aléatoire des parkings de l'Université le mercredi 25 septembre de 10h à 11h.
+Nous avons procédé à un échantillonnage aléatoire des parkings de l'Université le mercredi 25 septembre de 10h à 11h. Nous avons émis l'hypothèse qu'il n'y avait pas de différence significative entre les parkings, et nous avons donc cartographié les différents parkings auquel nous avons attribué un numéro. Afin de faire notre tirage aléatoire, nous avons utilisé le générateur de nombre pseudo-aléatoires dans R pour tirer 8 des 25 parkings, sans remise.
 
 ```{r}
 set.seed(123)
 sample(seq(1, 25, 1), size=8)
 ```
+![carte des stationnements](./carte.png)
 
 ### Données
 
