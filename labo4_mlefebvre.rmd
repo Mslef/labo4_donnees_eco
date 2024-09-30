@@ -1,53 +1,60 @@
 ---
 title: "Laboratoire 4"
-output: "html_document"
+output: "pdf_document"
 ---
 
 ## Question 1
 
+Tout d'abord le fichier Hauteur.txt est importé et le "working directory" est fixé pour aider à la réplicabilité du code.
+
+La structure des données est ensuite analysée pour déterminer les tests appropriés, et nous effectuons une visualisation avec un boxplot.
+
 ```{r}
-# Tout d'abord le fichier Hauteur.txt est importé et 
-# le "working directory" est fixé pour aider à la réplicabilité du code.
-
 setwd("~/Documents/donnees_eco/Labo4")
-
 hauteurs <- read.table("Hauteur.txt", header =TRUE)
-
-# Les données sont ensuite analysés pour déterminer les tests appropriés
 str(hauteurs)
 head(hauteurs)
-
-# Nous pouvons visualiser la variance des frères et soeurs des 
-# échantillons avec un boxplot
 
 boxplot(hauteurs[c("Sister", "Brother")])
 ```
 
-Le dataframe hauteurs contient des familles avec un compte de frères et de soeurs. Chaque famille étant indépendante l'une de l'autre, nous sommes en présence d'échantillons non appariés.
+Le dataframe "hauteurs" contient les hauteurs respectives en pouces d'un frère et d'une soeur pour 11 familles. Comme nous mesurons la variabilité de hauteur de frères et soeurs dans une même famille, nous sommes en présence d'échantillons appariés.
 
-On observe que la médiane des frères et soeurs est différente, et il semble y avoir plus de variance pour les soeurs.
-
-On procède donc à un test t pour échantillons non appariés :
+On procède donc à un test t pour échantillons appariés, avec un seuil alpha de 0.05.
 
 ```{r}
 sisters <- hauteurs[ "Sister" ]
 brothers <- hauteurs["Brother"]
 
-t.test(sisters, brothers)
-
-# On teste ensuite les résidus, pour s'assurer de l'applicabilité du test
-sisters_res <- sisters - mean(sisters[,1])
-brothers_res <- brothers - mean(brothers[,1])
-
+t.test(sisters[,1], brothers[,1], paired=TRUE)
 ```
+
+On observe une p-value beaucoup plus faible que 0.05, ce qui permet de rejeter l'hypothèse nulle qu'il n'y a pas de différence entre la taille des frères et des soeurs. L'intervalle de confiance à 95% suggère que la moyenne de la taille des soeurs est entre 3.33 et 6.73 pouces plus petites que celle de leur frères 19 fois sur 20.
+
+Les conditions d'applications de ce test sont que les données sont indépendantes, et que les résidus suivent une distribution normale.
+
+```{r}
+# Test d'Anderson-Darling sur les résidus
+library(nortest)
+
+# Comme nous sommes en présences d'échantillons appariés nous évaluons les résidus de la différence
+diff = brothers[,1] - sisters[,1]
+res_diff <- diff - mean(diff)
+ad.test(res_diff)
+
+# Test graphique
+qqnorm(res_diff)
+qqline(res_diff)
+```
+On suppose que les 11 familles ont été échantillonnées aléatoirement, et on observe que la normalité semble être respectée, bien que certaines valeurs du qqplot ne correspondent pas à la droite. Les conditions du test t que nous avons utilisé sont donc respectés.
 
 ## Question 2
 
 ### 2.a
 
-Nous avons émis l'hypothèse qu'il n'y avait pas de différence significative entre les stationnements de l'Université, et nous avons cartographié les différents parkings extérieurs en leur attribuant un numéro.
+Nous avons émis l'hypothèse qu'il n'y avait pas de différence significative entre les stationnements de l'Université, et nous avons cartographié les différents stationnements extérieurs en leur attribuant un numéro.
 
-Nous avons opté un pour un échantillonnage aléatoire pour choisir les stationnements, dans lesqules nous avons compté toutes les voitures à essence et les voiures "vertes". Afin de faire notre tirage aléatoire, nous avons utilisé le générateur de nombre pseudo-aléatoires dans R pour tirer 8 des 25 parkings, sans remise. 
+Nous avons opté un pour un échantillonnage aléatoire pour choisir les stationnements, dans lesquels nous avons compté toutes les voitures à essence et les voitures "vertes". Afin de faire notre tirage aléatoire, nous avons utilisé le générateur de nombre pseudo-aléatoires dans R pour tirer 8 des 25 stationnements, sans remise. 
 
 ```{r}
 set.seed(123)
@@ -57,7 +64,7 @@ sample(seq(1, 25, 1), size=8)
 
 ### 2.b
 
-Nous avons procédé à l'échantillonnage aléatoire des stationnements de l'Université le mercredi 25 septembre de 10h à 11h. Deux des stationnements sélectionnés étaient en construction, et nous avons opté d'échantillonner l'alternative la plus proche comme remplacement.
+Nous avons procédé à l'échantillonnage aléatoire des stationnements de l'Université le mercredi 25 septembre de 10h à 11h. Deux des stationnements sélectionnés étaient en construction et nous avons opté d'échantillonner l'alternative la plus proche comme remplacement.
 
 ```{r}
 
@@ -68,6 +75,7 @@ verte <- c(7, 10, 15, 15, 12, 5, 0, 15)
 sample_mtx <- matrix(c(id, essence, verte), nrow = 8, byrow = FALSE)
 
 colnames(sample_mtx) <- c("parking_id", "gas_cars", "green_cars")
+sample_mtx
 
 ```
 ### 2.c
@@ -75,16 +83,41 @@ colnames(sample_mtx) <- c("parking_id", "gas_cars", "green_cars")
 Nous avons émis les hypothèses statistiques suivantes :
 
 Hypothèse a :
-H0a : Les gens qui fréquentent le campus n'utilisent pas plus de voiture "vertes" que de voitures à essence
-H1a : Les gens qui fréquentent le campus utilisent plus de voitures "vertes" que de voitures à essence
+
+H0a : Les voitures "vertes" et à essence ont la même probabilité de se retrouver sur les stationnements de l'Université 
+
+H1a : Les voitures "vertes" et à essence n'ont pas la même probabilité de se retrouver sur les stationnements de l'Université 
 
 Hypothèse b :
-Nous avons aussi décider de tester si notre prémisse qu'il n'y avait pas de différence entre les stationnements était valide :
+Nous avons aussi décidé de tester la prémisse qu'il n'y avait pas de différence entre les stationnements.
+
 H0b : Il n'y a pas de différence entre les stationnements au niveau de la présence de voitures "vertes" et à essence
+
 H1b : Il y a une différence entre les stationnements au niveau de la présence de voitures "vertes" et à essence
 
 ### 2.d
 
+Pour tester nos hypothèses, nous utilisons un test de Khi carré. Nos données sont des observations de fréquence, les observations sont indépendantes et nous avons un échantillon de taille suffisante.
+
+```{r}
+# Visualisation des données
+boxplot(sample_mtx[,2:3])
+
+# Nous effecton un premier test de Khi2, pour tester notre hypothèse H0a
+# Nous utilisons la somme des colonnes pour ce premier test, afin de comparer
+# l'utilisation de voitures "vertes" et à essence
+chisq.test(colSums(sample_mtx[,2:3]))
+
+# Pour tester l'hypothèse H0b, nous effectuons un test de Khi2 sur les données
+# par stationnement, afin de comparer les stationnements entre eux
+chisq.test(sample_mtx[,2:3])
+```
+
+Nous obtenons une p-value très faible pour le premier test, ce qui nous permet de rejeter l'hypothèse que les voitures à essences et les voitures "vertes" sont présentes dans la même proportion dans les stationnements. Ceci ne nous surprend pas étant donné que pendant l'échantillonnage il était évident qu'il y avait significativement moins de voitures "vertes", ce que nous observons aussi sur le boxplot.
+
+Pour le second test, nous obtenons une p value de 0.07561, ce qui ne nous permet pas de rejeter l'hypothèse nulle qu'il n'y a pas de différence significative entre les proportions dans chaque stationnement. Notons que cette valeur est tout de même assez basse, ce qui semble indiquer qu'il y a une certaine variabilité entre les stationnements.
+
+
 ### 2.e
 
-
+Nous avons utilisé un échantillonnage aléatoire, et nous n'avons pas détecté de strates entre les stationnements. Il pourrait toutefois y avoir de la variabilité dans le temps, et la distribution des voitures "vertes" et à essence pourrait varier dans une journée, ou encore selon le jour de la semaine. Pour comparer des périodes dans la journée nous pourrions retourner échantillonner à différentes heures et différentes journées, et comparer ces échantillons à l'aide d'un test du Khi carré.
